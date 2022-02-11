@@ -71,6 +71,16 @@ unpacked extension from this directory.
 
 The detailed build instruction is available [here][BuildInstructions].
 
+#### Build in Docker
+
+The `BROWSER` argument can be see to the browser you want to build for.
+
+```sh
+docker build -t node/webscrobbler --build-arg BROWSER=firefox .
+docker create -ti --name temporary node/webscrobbler sh
+docker cp temporary:/usr/src/app/build ${PWD}
+```
+
 ### Develop connectors
 
 Check the [wiki page][WikiDev] to understand development of connectors. Please

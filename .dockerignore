@@ -1,0 +1,33 @@
+**/.dockerignore
+**/Dockerfile*
+**/.env
+**/.git
+**/.gitignore
+**/.github
+**/.log
+**/.vscode
+**/node_modules
+**/npm-debug.log
+**/secrets.dev.yaml
+**/values.dev.yaml
+**/README.md
+
+# Build
+**/build
+**/*.zip
+# Other
+**/*.log
+
+# Vendor
+**/node_modules/
+**/src/vendor/
+3RD-PARTY.md
+
+# Coverage
+.codacy-coverage/
+.nyc_output/
+.nyc_cache/
+coverage/
+
+# Cache
+.eslintcache
