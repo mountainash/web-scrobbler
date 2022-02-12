@@ -66,12 +66,16 @@ Before building the extension you should install dependencies:
 > npx grunt build:chrome
 ```
 
-The built extension is available in `build` directory. You can install it as an
+The built extension is available in [`build`](./build/) directory. You can install it as an
 unpacked extension from this directory.
 
 The detailed build instruction is available [here][BuildInstructions].
 
 #### Build in Docker
+
+This is a clean way to use the latest version of NodeJS, pull all the required dependencies
+and build either browser extension format, in a self-contained, secure Docker container
+which can easily be deleted.
 
 The `BROWSER` argument can be see to the browser you want to build for.
 
@@ -80,6 +84,22 @@ docker build -t node/webscrobbler --build-arg BROWSER=firefox .
 docker create -ti --name temporary node/webscrobbler sh
 docker cp temporary:/usr/src/app/build ${PWD}
 ```
+
+The built extension is available in [`build`](./build/) directory. You can install it as an
+unpacked extension from this directory.
+
+### Safari Build
+
+1. Build (unpacked) the chrome version
+1. `xcrun safari-web-extension-converter ./build/`
+
+#### TODO
+- [ ] Create 512x512 icon logo
+- [ ] FIX: `TypeError: undefined is not an object (evaluating 'notifications.onClicked')`
+occurs in the background script (Safari doesn't support Extensions using the
+Notifications API, so check for it before L:242 in `notifications.js`)
+- [ ] FIX: 'Unsupported website' error on youtube.com & music.youtube.com & more
+- [ ] FIX: 'Sign in' button's in the Web Scrobber options don't work
 
 ### Develop connectors
 
