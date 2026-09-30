@@ -1,3 +1,7 @@
+## ABOUT THIS FORK
+
+GH Actions changes to allow the Safari build to capture the `safariraw` build output and upload it as compressed file to the GH Actions artifacts
+
 <div align="center">
 
 <p>

@@ -4,9 +4,21 @@ on:
     branches: [master]
   pull_request:
     types: [opened, synchronize]
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to build'
+        required: true
+        default: 'chrome'
+        type: choice
+        options:
+          - chrome
+          - firefox
+          - safari
 jobs:
   build-chrome:
     name: Build the extension for Chrome
+    if: github.event_name != 'workflow_dispatch' || inputs.browser == 'chrome'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -33,6 +45,7 @@ jobs:
 
   build-firefox:
     name: Build the extension for Firefox
+    if: github.event_name != 'workflow_dispatch' || inputs.browser == 'firefox'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -59,6 +72,7 @@ jobs:
 
   build-safari:
     name: Build the extension for Safari
+    if: github.event_name != 'workflow_dispatch' || inputs.browser == 'safari'
     runs-on: macos-latest
     steps:
       - name: Checkout the repository
@@ -83,6 +97,17 @@ jobs:
       - name: Build the extension
         run: |
           npm run build safari
+
+      - name: Compress the raw Safari extension
+        run: |
+          cd build
+          zip -r safariraw.zip safariraw
+
+      - name: Upload the raw Safari extension as a compressed artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-scrobbler-safari-raw
+          path: build/safariraw.zip
 
       - name: Upload the extension as an artifact
         uses: actions/upload-artifact@v7
