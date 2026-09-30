@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "isolatedModules": true,
+    "outDir": "build",
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "paths": {
+      "@/*": ["./src/*"],
+      "#/*": ["./tests/*"]
+    },
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "ES2022"
+  },
+  "include": [
+    "src/**/*",
+    "tests/**/*",
+    "scripts/**/*",
+    "vite.configs.ts",
+    "*.config.ts",
+    "build.ts"
+  ]
+}
