@@ -1,54 +1,121 @@
 export {};
 
 /**
- * This script runs in non-isolated environment(youtube music itself)
- * for accessing navigator variables on Firefox
+ * Quick links to debug and test the connector:
  *
- * * Script is run as an IIFE to ensure variables are scoped, as in the event
- * of extension reload/update a new script will have to override the current one.
+ * https://music.youtube.com/playlist?list=OLAK5uy_kDEvxPASaVnoSjOZViKEn4S3iVaueN0UI
+ * Multiple artists
  *
- * Script starts by calling window.cleanup to cleanup any potential previous script.
+ * https://music.youtube.com/playlist?list=OLAK5uy_k-OR_rCdS5UNV22eIhAOWLMZbbxa20muQ
+ * Auto-generated YouTube video (and generic track on YouTube Music)
  *
- * @returns a cleanup function that cleans up event listeners and similar for a future overriding script.
+ * https://music.youtube.com/watch?v=Ap1fDjCXQrU
+ * Regular YouTube video which contains artist and track names in video title
+ *
+ * https://music.youtube.com/watch?v=hHrvuQ4DwJ8
+ * Regular YouTube video which contains track name in video title and
+ * artist name as a channel name
+ *
+ * https://music.youtube.com/library/uploaded_songs
+ * Uploaded songs have different artist and track selectors
  */
 
-if ('cleanup' in window && typeof window.cleanup === 'function') {
-	(window as unknown as { cleanup: () => void }).cleanup();
+const adSelector =
+	'ytmusic-miniplayer.advertisement, .ytmusic-player-bar.advertisement';
+
+const mediaInfo = {
+	playbackState: 'none',
+	metadata: {
+		title: '',
+		artist: '',
+		artwork: [{ src: '' }],
+		album: '',
+	},
+};
+
+Connector.onScriptEvent = (event) => {
+	mediaInfo.playbackState = event.data.playbackState as string;
+	mediaInfo.metadata = event.data.metadata as {
+		title: string;
+		artist: string;
+		artwork: { src: string; size: string; type: string }[];
+		album: string;
+	};
+};
+
+Connector.playerSelector = 'ytmusic-miniplayer, ytmusic-player-bar';
+
+Connector.isTrackArtDefault = (url) => {
+	// Self-uploaded tracks could not have cover arts
+	return Boolean(url?.includes('cover_track_default'));
+};
+
+Connector.getAlbum = () => mediaInfo.metadata?.album;
+
+Connector.getTrackArt = () => {
+	const artworks = mediaInfo.metadata?.artwork;
+	return artworks?.[artworks.length - 1].src;
+};
+
+Connector.getArtistTrack = () => {
+	let artist;
+	let track;
+	const metadata = mediaInfo.metadata;
+
+	if (metadata?.album) {
+		artist = metadata.artist;
+		track = metadata.title;
+	} else {
+		({ artist, track } = Util.processYtVideoTitle(metadata?.title));
+		if (!artist) {
+			artist = metadata?.artist;
+		}
+	}
+	return { artist, track };
+};
+
+Connector.timeInfoSelector =
+	'ytmusic-miniplayer .time-info, .ytmusic-player-bar.time-info';
+
+Connector.isPlaying = () => mediaInfo.playbackState === 'playing';
+
+Connector.loveButtonSelector = [
+	'like-button-view-model button[aria-pressed="false"]',
+	'ytmusic-like-button-renderer #button-shape-like button[aria-pressed="false"]',
+].join(', ');
+
+Connector.unloveButtonSelector = [
+	'like-button-view-model button[aria-pressed="true"]',
+	'ytmusic-like-button-renderer #button-shape-like button[aria-pressed="true"]',
+].join(', ');
+
+Connector.getUniqueID = () => {
+	const uniqueId = new URLSearchParams(window.location.search).get('v');
+
+	if (uniqueId) {
+		return uniqueId;
+	}
+
+	const videoUrl = Util.getAttrFromSelectors('.yt-uix-sessionlink', 'href');
+	return Util.getYtVideoIdFromUrl(videoUrl);
+};
+
+Connector.scrobblingDisallowedReason = () =>
+	Util.isElementVisible(adSelector) ? 'IsAd' : null;
+
+function filterYoutubeIfNonAlbum(text: string) {
+	return Connector.getAlbum() ? text : MetadataFilter.youtube(text);
 }
 
-(window as unknown as { cleanup: () => void }).cleanup = (() => {
-	const sendData = () => {
-		window.postMessage(
-			{
-				sender: 'web-scrobbler',
-				playbackState: navigator.mediaSession.playbackState,
-				metadata: {
-					title: navigator.mediaSession.metadata?.title,
-					artist: navigator.mediaSession.metadata?.artist,
-					artwork: navigator.mediaSession.metadata?.artwork,
-					album: navigator.mediaSession.metadata?.album,
-				},
-			},
-			'*',
-		);
-	};
-	const playPauseButton = document.getElementById('play-pause-button');
-	const SongInfo = document.querySelector('.content-info-wrapper');
+const youtubeMusicFilter = MetadataFilter.createFilter({
+	track: [
+		filterYoutubeIfNonAlbum,
+		MetadataFilter.removeRemastered,
+		MetadataFilter.removeLive,
+	],
+	album: [MetadataFilter.removeRemastered, MetadataFilter.removeLive],
+});
 
-	const observer = new MutationObserver(sendData);
+Connector.applyFilter(youtubeMusicFilter);
 
-	observer.observe(playPauseButton as Node, {
-		attributes: true,
-	});
-
-	observer.observe(SongInfo as Node, {
-		attributes: true,
-		subtree: true,
-	});
-
-	return () => {
-		// remove the subscribers added by this extension from the array.
-		// we dont have a confirmed reference to it so we have to check all of them.
-		observer.disconnect();
-	};
-})();
+Connector.injectScript('connectors/youtube-music-dom-inject.js');
