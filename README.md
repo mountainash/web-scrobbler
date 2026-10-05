@@ -1,7 +1,10 @@
 ## ABOUT THIS FORK
 
-GH Actions changes to allow the Safari build to capture the `safariraw` build output and upload it as compressed file to the GH Actions artifacts
+- Upstream for the [KitScrobbler](https://github.com/mountainash/KitScrobbler/releases/tag/v1.0.0) project to update a working Safari Extension faster than the Web Scrobbler project
+- GitHub Action changes to allow the Safari build to capture the `safariraw` build output & upload it as compressed file to the GH Actions artifacts
 
+<details>
+	<summary>Web Scrobbler README</summary>
 <div align="center">
 
 <p>
@@ -161,3 +164,5 @@ Licensed under the [MIT License][License].
 [WikiDev]: https://github.com/web-scrobbler/web-scrobbler/wiki/Connectors-development
 [WikiTempAddon]: https://github.com/web-scrobbler/web-scrobbler/wiki/Install-a-temporary-add-on
 [WikiUnpacked]: https://github.com/web-scrobbler/web-scrobbler/wiki/Install-an-unpacked-extension
+
+</details>
